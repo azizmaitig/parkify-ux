@@ -82,7 +82,6 @@ export default function Parkings() {
   }
 
   const handleDelete = (parkingId: string) => {
-    // Implement delete functionality
     console.log("Delete parking:", parkingId)
   }
 
@@ -99,7 +98,7 @@ export default function Parkings() {
                 <Sheet>
                   <SheetTrigger asChild>
                     <Button>
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Plus className="h-4 w-4" />
                       Ajouter un parking
                     </Button>
                   </SheetTrigger>
@@ -110,7 +109,6 @@ export default function Parkings() {
                         Remplissez les informations du parking ci-dessous
                       </SheetDescription>
                     </SheetHeader>
-                    {/* Form will be implemented later */}
                   </SheetContent>
                 </Sheet>
               </div>
