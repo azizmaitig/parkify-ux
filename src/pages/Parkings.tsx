@@ -22,10 +22,12 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { Input } from "@/components/ui/input"
 
 interface Parking {
   id: string
@@ -35,6 +37,14 @@ interface Parking {
   availableSpaces: number
   openingHours: string
   closingHours: string
+  maxCarHeight: number
+  maxCarLength: number
+  maxCarWidth: number
+  numberOfFloors: number
+  floorCapacities: number[]
+  hourlyRate: number
+  dailyRate: number
+  monthlyRate: number
 }
 
 const parkings: Parking[] = [
@@ -46,6 +56,14 @@ const parkings: Parking[] = [
     availableSpaces: 45,
     openingHours: "07:00",
     closingHours: "22:00",
+    maxCarHeight: 2.1,
+    maxCarLength: 5.5,
+    maxCarWidth: 2.3,
+    numberOfFloors: 2,
+    floorCapacities: [50, 50],
+    hourlyRate: 3.5,
+    dailyRate: 25,
+    monthlyRate: 200,
   },
   {
     id: "2",
@@ -55,6 +73,14 @@ const parkings: Parking[] = [
     availableSpaces: 120,
     openingHours: "06:00",
     closingHours: "23:00",
+    maxCarHeight: 2.0,
+    maxCarLength: 5.0,
+    maxCarWidth: 2.2,
+    numberOfFloors: 3,
+    floorCapacities: [70, 70, 60],
+    hourlyRate: 4,
+    dailyRate: 30,
+    monthlyRate: 250,
   },
   {
     id: "3",
@@ -64,11 +90,36 @@ const parkings: Parking[] = [
     availableSpaces: 32,
     openingHours: "08:00",
     closingHours: "20:00",
+    maxCarHeight: 1.9,
+    maxCarLength: 4.8,
+    maxCarWidth: 2.1,
+    numberOfFloors: 1,
+    floorCapacities: [150],
+    hourlyRate: 3,
+    dailyRate: 20,
+    monthlyRate: 180,
   },
 ]
 
+interface NewParking extends Omit<Parking, 'id' | 'availableSpaces'> {}
+
 export default function Parkings() {
   const [selectedParking, setSelectedParking] = useState<Parking | null>(null)
+  const [newParking, setNewParking] = useState<NewParking>({
+    name: "",
+    address: "",
+    totalSpaces: 0,
+    openingHours: "",
+    closingHours: "",
+    maxCarHeight: 0,
+    maxCarLength: 0,
+    maxCarWidth: 0,
+    numberOfFloors: 1,
+    floorCapacities: [0],
+    hourlyRate: 0,
+    dailyRate: 0,
+    monthlyRate: 0,
+  })
 
   const getOccupancyColor = (total: number, available: number) => {
     const occupancyRate = (available / total) * 100
@@ -83,6 +134,29 @@ export default function Parkings() {
 
   const handleDelete = (parkingId: string) => {
     console.log("Delete parking:", parkingId)
+  }
+
+  const handleAddParking = () => {
+    console.log("New parking data:", newParking)
+  }
+
+  const handleFloorCapacityChange = (index: number, value: string) => {
+    const newCapacities = [...newParking.floorCapacities]
+    newCapacities[index] = parseInt(value) || 0
+    setNewParking({ ...newParking, floorCapacities: newCapacities })
+  }
+
+  const handleNumberOfFloorsChange = (value: string) => {
+    const floors = parseInt(value) || 1
+    const capacities = new Array(floors).fill(0)
+    newParking.floorCapacities.forEach((cap, index) => {
+      if (index < floors) capacities[index] = cap
+    })
+    setNewParking({
+      ...newParking,
+      numberOfFloors: floors,
+      floorCapacities: capacities,
+    })
   }
 
   return (
@@ -102,13 +176,212 @@ export default function Parkings() {
                       Ajouter un parking
                     </Button>
                   </SheetTrigger>
-                  <SheetContent>
+                  <SheetContent className="overflow-y-auto">
                     <SheetHeader>
                       <SheetTitle>Ajouter un nouveau parking</SheetTitle>
                       <SheetDescription>
                         Remplissez les informations du parking ci-dessous
                       </SheetDescription>
                     </SheetHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="space-y-2">
+                        <label htmlFor="name">Nom du parking</label>
+                        <Input
+                          id="name"
+                          value={newParking.name}
+                          onChange={(e) =>
+                            setNewParking({ ...newParking, name: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="address">Adresse</label>
+                        <Input
+                          id="address"
+                          value={newParking.address}
+                          onChange={(e) =>
+                            setNewParking({
+                              ...newParking,
+                              address: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label htmlFor="openingHours">Heure d'ouverture</label>
+                          <Input
+                            id="openingHours"
+                            type="time"
+                            value={newParking.openingHours}
+                            onChange={(e) =>
+                              setNewParking({
+                                ...newParking,
+                                openingHours: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="closingHours">Heure de fermeture</label>
+                          <Input
+                            id="closingHours"
+                            type="time"
+                            value={newParking.closingHours}
+                            onChange={(e) =>
+                              setNewParking({
+                                ...newParking,
+                                closingHours: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="totalSpaces">Nombre total de places</label>
+                        <Input
+                          id="totalSpaces"
+                          type="number"
+                          value={newParking.totalSpaces}
+                          onChange={(e) =>
+                            setNewParking({
+                              ...newParking,
+                              totalSpaces: parseInt(e.target.value) || 0,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="font-medium">Dimensions maximales des véhicules</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <label htmlFor="maxHeight">Hauteur (m)</label>
+                            <Input
+                              id="maxHeight"
+                              type="number"
+                              step="0.1"
+                              value={newParking.maxCarHeight}
+                              onChange={(e) =>
+                                setNewParking({
+                                  ...newParking,
+                                  maxCarHeight: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label htmlFor="maxLength">Longueur (m)</label>
+                            <Input
+                              id="maxLength"
+                              type="number"
+                              step="0.1"
+                              value={newParking.maxCarLength}
+                              onChange={(e) =>
+                                setNewParking({
+                                  ...newParking,
+                                  maxCarLength: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label htmlFor="maxWidth">Largeur (m)</label>
+                            <Input
+                              id="maxWidth"
+                              type="number"
+                              step="0.1"
+                              value={newParking.maxCarWidth}
+                              onChange={(e) =>
+                                setNewParking({
+                                  ...newParking,
+                                  maxCarWidth: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label htmlFor="numberOfFloors">Nombre d'étages</label>
+                          <Input
+                            id="numberOfFloors"
+                            type="number"
+                            min="1"
+                            value={newParking.numberOfFloors}
+                            onChange={(e) => handleNumberOfFloorsChange(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label>Capacité par étage</label>
+                          {newParking.floorCapacities.map((capacity, index) => (
+                            <div key={index} className="flex items-center gap-2">
+                              <span className="w-24">Étage {index + 1}</span>
+                              <Input
+                                type="number"
+                                value={capacity}
+                                onChange={(e) =>
+                                  handleFloorCapacityChange(index, e.target.value)
+                                }
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="font-medium">Tarifs</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <label htmlFor="hourlyRate">Tarif horaire (€)</label>
+                            <Input
+                              id="hourlyRate"
+                              type="number"
+                              step="0.5"
+                              value={newParking.hourlyRate}
+                              onChange={(e) =>
+                                setNewParking({
+                                  ...newParking,
+                                  hourlyRate: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label htmlFor="dailyRate">Tarif journalier (€)</label>
+                            <Input
+                              id="dailyRate"
+                              type="number"
+                              step="0.5"
+                              value={newParking.dailyRate}
+                              onChange={(e) =>
+                                setNewParking({
+                                  ...newParking,
+                                  dailyRate: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label htmlFor="monthlyRate">Tarif mensuel (€)</label>
+                            <Input
+                              id="monthlyRate"
+                              type="number"
+                              step="0.5"
+                              value={newParking.monthlyRate}
+                              onChange={(e) =>
+                                setNewParking({
+                                  ...newParking,
+                                  monthlyRate: parseFloat(e.target.value) || 0,
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <SheetFooter>
+                      <Button onClick={handleAddParking}>Ajouter le parking</Button>
+                    </SheetFooter>
                   </SheetContent>
                 </Sheet>
               </div>
@@ -144,6 +417,19 @@ export default function Parkings() {
                       <span>
                         {parking.openingHours} - {parking.closingHours}
                       </span>
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span>Dimensions max</span>
+                        <span>
+                          {parking.maxCarLength}x{parking.maxCarWidth}x
+                          {parking.maxCarHeight}m
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Tarif horaire</span>
+                        <span>{parking.hourlyRate}€</span>
+                      </div>
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-end space-x-2">
@@ -187,3 +473,4 @@ export default function Parkings() {
     </SidebarProvider>
   )
 }
+
