@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { useToast } from "sonner";
+import { toast } from "sonner";
 import { useState } from "react";
 
 export default function Complaints() {
@@ -17,7 +17,6 @@ export default function Complaints() {
   const [measures, setMeasures] = useState("");
   const [severity, setSeverity] = useState([0]);
   const [file, setFile] = useState<File | null>(null);
-  const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
