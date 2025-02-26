@@ -12,9 +12,10 @@ interface ParkingMapProps {
   showGrid: boolean;
   level: number;
   parkingImage: string | null;
+  onClearMarkers?: () => void;
 }
 
-export function ParkingMap({ showGrid, level, parkingImage }: ParkingMapProps) {
+export function ParkingMap({ showGrid, level, parkingImage, onClearMarkers }: ParkingMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [spaces, setSpaces] = useState<ParkingSpace[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -106,6 +107,19 @@ export function ParkingMap({ showGrid, level, parkingImage }: ParkingMapProps) {
       }
     ]);
   };
+
+  const clearMarkers = () => {
+    setSpaces([]);
+    if (onClearMarkers) {
+      onClearMarkers();
+    }
+  };
+
+  useEffect(() => {
+    if (onClearMarkers) {
+      onClearMarkers = clearMarkers;
+    }
+  }, [onClearMarkers]);
 
   return (
     <canvas
