@@ -1,10 +1,11 @@
-
-import { Building, Calendar, MessageSquare, ParkingCircle, Users } from "lucide-react"
+import { ArrowLeft, Building, Calendar, MessageSquare, ParkingCircle, Users } from "lucide-react"
 import { Container } from "@/components/ui/container"
 import { StatsCard } from "@/components/stats-card"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { useNavigate } from "react-router-dom"
 
 const stats = [
   {
@@ -32,6 +33,8 @@ const stats = [
 ]
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -39,7 +42,12 @@ const Dashboard = () => {
         <main className="flex-1">
           <Container>
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold mt-8">Tableau de bord</h1>
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h1 className="text-2xl font-bold mt-8">Tableau de bord</h1>
+              </div>
               <SidebarTrigger />
             </div>
 

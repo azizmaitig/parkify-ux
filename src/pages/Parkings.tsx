@@ -1,5 +1,4 @@
-
-import { Building, Edit, MapPin, Plus, Trash } from "lucide-react";
+import { ArrowLeft, Building, Edit, MapPin, Plus, Trash } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,8 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface Parking {
   id: string;
@@ -79,6 +80,7 @@ export default function Parkings() {
     hourlyRate: 0,
     hasDynamicPricing: false
   });
+  const navigate = useNavigate();
 
   const getOccupancyColor = (total: number, available: number) => {
     const occupancyRate = available / total * 100;
@@ -89,14 +91,39 @@ export default function Parkings() {
 
   const handleEdit = (parking: Parking) => {
     setSelectedParking(parking);
+    setNewParking({
+      name: parking.name,
+      address: parking.address,
+      totalSpaces: parking.totalSpaces,
+      openingHours: parking.openingHours,
+      closingHours: parking.closingHours,
+      numberOfFloors: parking.numberOfFloors,
+      floorCapacities: parking.floorCapacities,
+      hourlyRate: parking.hourlyRate,
+      hasDynamicPricing: parking.hasDynamicPricing
+    });
+    toast.success("Parking modifié avec succès");
   };
 
   const handleDelete = (parkingId: string) => {
     console.log("Delete parking:", parkingId);
+    toast.success("Parking supprimé avec succès");
   };
 
   const handleAddParking = () => {
     console.log("New parking data:", newParking);
+    toast.success("Parking ajouté avec succès");
+    setNewParking({
+      name: "",
+      address: "",
+      totalSpaces: 0,
+      openingHours: "",
+      closingHours: "",
+      numberOfFloors: 1,
+      floorCapacities: [0],
+      hourlyRate: 0,
+      hasDynamicPricing: false
+    });
   };
 
   const handleFloorCapacityChange = (index: number, value: string) => {
@@ -127,7 +154,12 @@ export default function Parkings() {
         <main className="flex-1">
           <Container>
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold mt-8">Gestion des Parkings</h1>
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h1 className="text-2xl font-bold mt-8">Gestion des Parkings</h1>
+              </div>
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
                 <Sheet>
@@ -158,6 +190,16 @@ export default function Parkings() {
                         ...newParking,
                         address: e.target.value
                       })} />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="location">Lien de l'emplacement</label>
+                        <Input 
+                          id="location" 
+                          placeholder="Collez le lien Google Maps ici"
+                          onChange={e => {
+                            console.log("Location link:", e.target.value);
+                          }} 
+                        />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -223,7 +265,9 @@ export default function Parkings() {
                       </div>
                     </div>
                     <SheetFooter>
-                      <Button onClick={handleAddParking}>Ajouter le parking</Button>
+                      <Button onClick={handleAddParking}>
+                        {selectedParking ? "Modifier le parking" : "Ajouter le parking"}
+                      </Button>
                     </SheetFooter>
                   </SheetContent>
                 </Sheet>
