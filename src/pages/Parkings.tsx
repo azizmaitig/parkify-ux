@@ -1,3 +1,4 @@
+
 import { ArrowLeft, Building, Edit, MapPin, Plus, Trash } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
@@ -27,7 +28,10 @@ interface Parking {
   hasDynamicPricing: boolean;
 }
 
-const parkings: Parking[] = [{
+interface NewParking extends Omit<Parking, 'id' | 'availableSpaces'> {}
+
+// Initial parking data
+const initialParkings: Parking[] = [{
   id: "1",
   name: "Parking Central",
   address: "123 Rue Principale, 75001 Paris",
@@ -65,10 +69,10 @@ const parkings: Parking[] = [{
   hasDynamicPricing: false
 }];
 
-interface NewParking extends Omit<Parking, 'id' | 'availableSpaces'> {}
-
 export default function Parkings() {
+  const [parkings, setParkings] = useState<Parking[]>(initialParkings);
   const [selectedParking, setSelectedParking] = useState<Parking | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [newParking, setNewParking] = useState<NewParking>({
     name: "",
     address: "",
@@ -89,6 +93,21 @@ export default function Parkings() {
     return "bg-red-100 text-red-700";
   };
 
+  const resetForm = () => {
+    setNewParking({
+      name: "",
+      address: "",
+      totalSpaces: 0,
+      openingHours: "",
+      closingHours: "",
+      numberOfFloors: 1,
+      floorCapacities: [0],
+      hourlyRate: 0,
+      hasDynamicPricing: false
+    });
+    setSelectedParking(null);
+  };
+
   const handleEdit = (parking: Parking) => {
     setSelectedParking(parking);
     setNewParking({
@@ -102,28 +121,42 @@ export default function Parkings() {
       hourlyRate: parking.hourlyRate,
       hasDynamicPricing: parking.hasDynamicPricing
     });
-    toast.success("Parking modifié avec succès");
+    setIsSheetOpen(true);
   };
 
   const handleDelete = (parkingId: string) => {
-    console.log("Delete parking:", parkingId);
+    setParkings(currentParkings => currentParkings.filter(p => p.id !== parkingId));
     toast.success("Parking supprimé avec succès");
   };
 
-  const handleAddParking = () => {
-    console.log("New parking data:", newParking);
-    toast.success("Parking ajouté avec succès");
-    setNewParking({
-      name: "",
-      address: "",
-      totalSpaces: 0,
-      openingHours: "",
-      closingHours: "",
-      numberOfFloors: 1,
-      floorCapacities: [0],
-      hourlyRate: 0,
-      hasDynamicPricing: false
-    });
+  const handleAddOrUpdateParking = () => {
+    if (selectedParking) {
+      // Update existing parking
+      setParkings(currentParkings => 
+        currentParkings.map(p => 
+          p.id === selectedParking.id 
+            ? { 
+                ...p, 
+                ...newParking, 
+                availableSpaces: Math.min(p.availableSpaces, newParking.totalSpaces) 
+              }
+            : p
+        )
+      );
+      toast.success("Parking modifié avec succès");
+    } else {
+      // Add new parking
+      const newId = String(parkings.length + 1);
+      setParkings(currentParkings => [...currentParkings, {
+        ...newParking,
+        id: newId,
+        availableSpaces: newParking.totalSpaces
+      }]);
+      toast.success("Parking ajouté avec succès");
+    }
+    
+    setIsSheetOpen(false);
+    resetForm();
   };
 
   const handleFloorCapacityChange = (index: number, value: string) => {
@@ -162,16 +195,21 @@ export default function Parkings() {
               </div>
               <div className="flex items-center gap-4">
                 <SidebarTrigger />
-                <Sheet>
+                <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                   <SheetTrigger asChild>
-                    <Button>
+                    <Button onClick={() => {
+                      resetForm();
+                      setIsSheetOpen(true);
+                    }}>
                       <Plus className="h-4 w-4" />
                       Ajouter un parking
                     </Button>
                   </SheetTrigger>
                   <SheetContent className="overflow-y-auto">
                     <SheetHeader>
-                      <SheetTitle>Ajouter un nouveau parking</SheetTitle>
+                      <SheetTitle>
+                        {selectedParking ? "Modifier le parking" : "Ajouter un nouveau parking"}
+                      </SheetTitle>
                       <SheetDescription>
                         Remplissez les informations du parking ci-dessous
                       </SheetDescription>
@@ -179,62 +217,87 @@ export default function Parkings() {
                     <div className="grid gap-4 py-4">
                       <div className="space-y-2">
                         <label htmlFor="name">Nom du parking</label>
-                        <Input id="name" value={newParking.name} onChange={e => setNewParking({
-                        ...newParking,
-                        name: e.target.value
-                      })} />
+                        <Input 
+                          id="name" 
+                          value={newParking.name} 
+                          onChange={e => setNewParking({
+                            ...newParking,
+                            name: e.target.value
+                          })} 
+                        />
                       </div>
                       <div className="space-y-2">
                         <label htmlFor="address">Adresse</label>
-                        <Input id="address" value={newParking.address} onChange={e => setNewParking({
-                        ...newParking,
-                        address: e.target.value
-                      })} />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="location">Lien de l'emplacement</label>
                         <Input 
-                          id="location" 
-                          placeholder="Collez le lien Google Maps ici"
-                          onChange={e => {
-                            console.log("Location link:", e.target.value);
-                          }} 
+                          id="address" 
+                          value={newParking.address} 
+                          onChange={e => setNewParking({
+                            ...newParking,
+                            address: e.target.value
+                          })} 
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <label htmlFor="openingHours">Heure d'ouverture</label>
-                          <Input id="openingHours" type="time" value={newParking.openingHours} onChange={e => setNewParking({
-                          ...newParking,
-                          openingHours: e.target.value
-                        })} />
+                          <Input 
+                            id="openingHours" 
+                            type="time" 
+                            value={newParking.openingHours} 
+                            onChange={e => setNewParking({
+                              ...newParking,
+                              openingHours: e.target.value
+                            })} 
+                          />
                         </div>
                         <div className="space-y-2">
                           <label htmlFor="closingHours">Heure de fermeture</label>
-                          <Input id="closingHours" type="time" value={newParking.closingHours} onChange={e => setNewParking({
-                          ...newParking,
-                          closingHours: e.target.value
-                        })} />
+                          <Input 
+                            id="closingHours" 
+                            type="time" 
+                            value={newParking.closingHours} 
+                            onChange={e => setNewParking({
+                              ...newParking,
+                              closingHours: e.target.value
+                            })} 
+                          />
                         </div>
                       </div>
                       <div className="space-y-2">
                         <label htmlFor="totalSpaces">Nombre total de places</label>
-                        <Input id="totalSpaces" type="number" value={newParking.totalSpaces} onChange={e => setNewParking({
-                        ...newParking,
-                        totalSpaces: parseInt(e.target.value) || 0
-                      })} />
+                        <Input 
+                          id="totalSpaces" 
+                          type="number" 
+                          value={newParking.totalSpaces} 
+                          onChange={e => setNewParking({
+                            ...newParking,
+                            totalSpaces: parseInt(e.target.value) || 0
+                          })} 
+                        />
                       </div>
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <label htmlFor="numberOfFloors">Nombre d'étages</label>
-                          <Input id="numberOfFloors" type="number" min="1" value={newParking.numberOfFloors} onChange={e => handleNumberOfFloorsChange(e.target.value)} />
+                          <Input 
+                            id="numberOfFloors" 
+                            type="number" 
+                            min="1" 
+                            value={newParking.numberOfFloors} 
+                            onChange={e => handleNumberOfFloorsChange(e.target.value)} 
+                          />
                         </div>
                         <div className="space-y-2">
                           <label>Capacité par étage</label>
-                          {newParking.floorCapacities.map((capacity, index) => <div key={index} className="flex items-center gap-2">
+                          {newParking.floorCapacities.map((capacity, index) => (
+                            <div key={index} className="flex items-center gap-2">
                               <span className="w-24">Étage {index + 1}</span>
-                              <Input type="number" value={capacity} onChange={e => handleFloorCapacityChange(index, e.target.value)} />
-                            </div>)}
+                              <Input 
+                                type="number" 
+                                value={capacity} 
+                                onChange={e => handleFloorCapacityChange(index, e.target.value)} 
+                              />
+                            </div>
+                          ))}
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -255,7 +318,7 @@ export default function Parkings() {
                           <Switch
                             id="dynamic-pricing"
                             checked={newParking.hasDynamicPricing}
-                            onCheckedChange={(checked) => setNewParking({
+                            onCheckedChange={checked => setNewParking({
                               ...newParking,
                               hasDynamicPricing: checked
                             })}
@@ -265,7 +328,7 @@ export default function Parkings() {
                       </div>
                     </div>
                     <SheetFooter>
-                      <Button onClick={handleAddParking}>
+                      <Button onClick={handleAddOrUpdateParking}>
                         {selectedParking ? "Modifier le parking" : "Ajouter le parking"}
                       </Button>
                     </SheetFooter>
@@ -275,7 +338,8 @@ export default function Parkings() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 mt-6">
-              {parkings.map(parking => <Card key={parking.id}>
+              {parkings.map(parking => (
+                <Card key={parking.id}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-xl font-semibold">
                       {parking.name}
@@ -330,7 +394,8 @@ export default function Parkings() {
                       </Tooltip>
                     </TooltipProvider>
                   </CardFooter>
-                </Card>)}
+                </Card>
+              ))}
             </div>
           </Container>
         </main>
