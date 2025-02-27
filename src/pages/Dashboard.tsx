@@ -1,9 +1,10 @@
 
-import { Building, MessageSquare, ParkingCircle, Users } from "lucide-react"
+import { Building, Calendar, MessageSquare, ParkingCircle, Users } from "lucide-react"
 import { Container } from "@/components/ui/container"
 import { StatsCard } from "@/components/stats-card"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 const stats = [
   {
@@ -41,10 +42,78 @@ const Dashboard = () => {
               <h1 className="text-2xl font-bold mt-8">Tableau de bord</h1>
               <SidebarTrigger />
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-6">
-              {stats.map((stat) => (
-                <StatsCard key={stat.title} {...stat} />
-              ))}
+
+            <div className="grid gap-6 mt-6">
+              <Card className="p-6">
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold">Que souhaitez-vous réserver ?</h2>
+                  <div className="flex space-x-4">
+                    <button className="px-4 py-2 text-primary bg-primary/10 rounded-md font-medium">
+                      Aujourd'hui
+                      <div className="text-sm text-primary">27 Février</div>
+                    </button>
+                    <button className="px-4 py-2 hover:bg-gray-100 rounded-md">
+                      Demain
+                      <div className="text-sm text-gray-500">28 Février</div>
+                    </button>
+                    <button className="px-4 py-2 hover:bg-gray-100 rounded-md">
+                      Samedi
+                      <div className="text-sm text-gray-500">1 Mars</div>
+                    </button>
+                  </div>
+                </div>
+              </Card>
+              
+              <div className="grid gap-6 md:grid-cols-7">
+                <Card className="md:col-span-4">
+                  <CardHeader>
+                    <CardTitle>Calendrier des Réservations</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <button className="p-2 hover:bg-gray-100 rounded-full">
+                          <Calendar className="h-5 w-5" />
+                        </button>
+                        <h3 className="text-lg font-semibold">Février 2024</h3>
+                        <button className="p-2 hover:bg-gray-100 rounded-full">
+                          <Calendar className="h-5 w-5" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-7 text-center gap-1">
+                        {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
+                          <div key={day} className="py-2 text-sm font-medium text-gray-500">
+                            {day}
+                          </div>
+                        ))}
+                        {Array.from({ length: 35 }).map((_, i) => (
+                          <button
+                            key={i}
+                            className={`p-2 rounded-full hover:bg-gray-100 ${
+                              i === 15 ? "bg-primary text-white hover:bg-primary/90" : ""
+                            }`}
+                          >
+                            {((i + 1) % 31) + 1}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="md:col-span-3">
+                  <CardHeader>
+                    <CardTitle>Statistiques</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4">
+                      {stats.map((stat) => (
+                        <StatsCard key={stat.title} {...stat} />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </Container>
         </main>
